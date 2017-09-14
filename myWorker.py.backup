@@ -1,0 +1,107 @@
+#!/usr/bin/python
+# -*- coding: utf-8 -*-
+
+# Title: myWorker.py
+# Description: Receive data via web service and send it to target
+
+# Author: dujingxi
+# Email: dujingxi@streamocean.com
+# Date: 2017/08/29
+
+from gevent import monkey
+import gevent
+from myHttp import app, STREAMS
+from config import *
+import copy
+import sys
+reload(sys)
+sys.setdefaultencoding('utf-8')
+monkey.patch_all()
+from myDef import *
+
+weather_info = {}
+def get_work(stream_id=0):
+    setlog()
+    while True:
+        if len(STREAMS) == 0:
+            logging.warning("STREAMS empty.")
+            gevent.sleep(5)
+            continue
+        else: break
+    current_stream = STREAMS[stream_id]
+    dest_url = STREAMS[stream_id]['out']
+    bgMusic = STREAMS[stream_id]['bgMusic']
+    description = STREAMS[stream_id]['description']
+    one_json = {
+        'cmdName': 'init',
+        'out': dest_url,
+        'bgMusic': bgMusic,
+        'description':description
+    }
+    gevent.sleep(2)
+    try:
+        # res = post_data(DES_URL, one_json)
+        logging.info("post one_json: %s"%one_json)
+    except Exception, e:
+        logging.error(e)
+        return e
+
+    while True:
+        for s in STREAMS[stream_id]['ins']:
+            cmd = "%s %s" % (CHECK_CMD, s['url'])
+            cmd_dict = sys_command_outstatuserr(cmd)
+            _code = cmd_dict['code']
+            _time = cmd_dict['time']
+            if _code != 0:
+                logging.error('url: %s invalid.'%s['url'])
+                continue
+            pic_tmp = copy.deepcopy(s['pic'])
+            caption_tmp = copy.deepcopy(s['caption'])
+            for pic in pic_tmp:
+                c, f = get_pic(pic['address'])
+                if c != 0:
+                    logging.error('Load %s failed'%pic['address'])
+                    continue
+                pic['address'] = "%s/%s"%(PIC_DIR, f) 
+            for cap  in caption_tmp:
+                fontfile = cap['fontFile']
+                # _t = cap['content']
+                # print _t
+                # with open('abc','w') as fp:
+                    # fp.write(_t)
+                cap['fontFile'] = "%s/%s" % (FONT_DIR, fontfile)
+            wea_res = get_weather(s['cityid'])
+            pic_tmp.append({'address':'%s/%s.png'%(WEATHER_DIR,wea_res['code']), 'positionX':'1', 'positionY':'1', 'isLoop':'0', 'transparent':'0' } )
+            for content in ['%s %s %s'%(wea_res['city'], wea_res['text'], wea_res['temp']), s['name']]:
+                caption_tmp.insert(0, {'fontFile':'fontdir/cukai', 'borderColor':'#fff', 'direction':'1', 'shadowX':'1', 'shadowY':'23', 'content':content, 'step':'10', 'width':'30', 'shadowColor':'#fff', 'fontSize':'22' , 'positionX':'2', 'positionY':'3', 'fontColor':'#fff', 'borderW':'3'})
+            switch_json = {
+                'cmdName': 'switch',
+                'name': s['name'],
+                'url': s['url'],
+                'cityid': s['cityid'],
+                #'pic': s['pic'],
+                'pic': pic_tmp,
+                #'caption': s['caption']
+                'caption': caption_tmp
+            }
+            gevent.sleep(DURATION-_time)
+            try:
+                # res = post_data(DES_URL, switch_json)
+                logging.info("post switch_json: %s" % switch_json)
+            except Exception, e:
+                logging.error("send switch cmd error: %s"%e)
+                # return e
+                continue
+        else:
+            while True:
+                if len(STREAMS) == 0:
+                    logging.warning("STREAMS empty.")
+                    gevent.sleep(10)
+                    continue
+                else: break
+
+if __name__ == '__main__':
+    g1 = gevent.spawn(app.run, host='0.0.0.0', port=8000)
+    g2 = gevent.spawn(get_work)
+    g1.join()
+    g2.join()
