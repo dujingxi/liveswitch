@@ -1,20 +1,22 @@
 # -*- coding:  utf-8 -*-
+import os
 
 # DURATION = 15
+CHECK_CMD = '/SO/bin/ad_config-6.0.0-17914/ffmpeg/bin/ffprobe'
 CHECK_URL_TIMEOUT = 10
 LOG_LEVEL = 20  # { 'DEBUG':10, 'INFO':20, 'WARNING':30, 'ERROR':40, 'CRITICAL':50 }
-LOG_FILE = "worker.log"
-PIC_DIR = "picdir"
-FONT_DIR = "fontdir"
-MP3_DIR = "mp3dir"
+BASE_DIR = os.path.dirname(__file__)
+LOG_FILE = os.path.join(BASE_DIR, "worker.log")
+PIC_DIR = os.path.join(BASE_DIR, "picdir")
+FONT_DIR = os.path.join(BASE_DIR, "fontdir")
+MP3_DIR = os.path.join(BASE_DIR, "mp3dir")
 DEFAULT_MP3 = "qrsy.mp2"
 # WEATHER_DIR = "weatherpng"
-WEATHER_DIR = "weapng"
-JSON_DB = "db.json"
+WEATHER_DIR = os.path.join(BASE_DIR, "weapng")
+JSON_DB = os.path.join(BASE_DIR, "db.json")
 LISTEN_IP = '0.0.0.0'
 LISTEN_PORT = 8000
 DES_URL = 'http://127.0.0.1:8888/post'
-CHECK_CMD = '/SO/bin/ad_config-6.0.0-17914/ffmpeg/bin/ffprobe'
 THREAD_NUM = 16
 
 '''
