@@ -30,13 +30,13 @@ def weather_work(stream_id=0):
     while True:
         if url_list == STREAMS[stream_id]['ins']:
             if num % 7200 == 0:
-                def_wea()
+                def_wea(url_list)
                 num = 1
             num += 1
             gevent.sleep(1)
             continue
         else:
-            def_wea()
+            def_wea(url_list)
             url_list = STREAMS[stream_id]['ins']
             num = 1
             gevent.sleep(1)
