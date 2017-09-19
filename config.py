@@ -13,6 +13,7 @@ MP3_DIR = os.path.join(BASE_DIR, "mp3dir")
 DEFAULT_MP3 = "qrsy.mp2"
 # WEATHER_DIR = "weatherpng"
 WEATHER_DIR = os.path.join(BASE_DIR, "weapng")
+CAPTION_DIR = os.path.join(BASE_DIR, "captiondir")
 JSON_DB = os.path.join(BASE_DIR, "db.json")
 LISTEN_IP = '0.0.0.0'
 LISTEN_PORT = 8000

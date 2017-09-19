@@ -6,8 +6,9 @@ import json
 import string
 import urllib
 import urllib2
+import hashlib
 import logging
-from config import CHECK_URL_TIMEOUT, PIC_DIR, LOG_LEVEL, LOG_FILE, MP3_DIR
+from config import CHECK_URL_TIMEOUT, PIC_DIR, LOG_LEVEL, LOG_FILE, MP3_DIR, CAPTION_DIR
 from subprocess import Popen , PIPE
 import time
 
@@ -69,6 +70,18 @@ def get_file(url, t):
                 return -1, 
         else: return 0, filename
     else: return -100, 
+
+def get_caption(text):
+    content = ' ' if not text else text
+    md5 = hashlib.md5()
+    md5.update(content)
+    content_txt = md5.hexdigest()
+    if not os.path.exists(content_txt):
+        fp = open("%s/%s"%(CAPTION_DIR, content_txt), 'w')
+        fp.write(content)
+        fp.close()
+    return "%s/%s" % (CAPTION_DIR, content_txt)
+
 
 
 # weather function
