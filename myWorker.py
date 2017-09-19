@@ -22,9 +22,24 @@ from myDef import *
 
 weather_info = {}
 def weather_work(stream_id=0):
-    for s in STREAMS[stream_id]['ins']:
-        weather_info[s['url']] = get_he_weather(s['cityid'])
-    gevent.sleep(7200)
+    def def_wea(ll):
+        for s in ll:
+            weather_info[s['url']] = get_he_weather(s['cityid'])
+    url_list = []
+    num = 1
+    while True:
+        if url_list == STREAMS[stream_id]['ins']:
+            if num % 7200 == 0:
+                def_wea()
+                num = 1
+            num += 1
+            gevent.sleep(1)
+            continue
+        else:
+            def_wea()
+            url_list = STREAMS[stream_id]['ins']
+            num = 1
+            gevent.sleep(1)
     
 def get_work(stream_id=0):
     setlog()
@@ -91,7 +106,11 @@ def get_work(stream_id=0):
 
             cur_map = g1.next()
             next_map = g1.next()
-            filter_cmd += 'movie=%s/%s.png [%s]; [%s][%s] overlay=%s [%s]; '%(WEATHER_DIR,weather_info[s['url']]['code'],cur_map , pre_map, cur_map, "W-w-50:H-h-52", next_map) 
+            try:
+                code_num = weather_info[s['url']]['code']
+            except:
+                code_num = "100"
+            filter_cmd += 'movie=%s/%s.png [%s]; [%s][%s] overlay=%s [%s]; '%(WEATHER_DIR,code_num, cur_map , pre_map, cur_map, "W-w-50:H-h-52", next_map) 
 
             pre_map = next_map
             for cap  in caption_tmp:
@@ -107,7 +126,10 @@ def get_work(stream_id=0):
                 
 
             # weather text
-            content = '%s' % weather_info[s['url']]['text']
+            try:
+                content = '%s' % weather_info[s['url']]['text']
+            except:
+                content = ' '
             # cur_map = g1.next()
             filter_cmd += '[%s] drawtext=text=%s: fontfile=%s/%s: fontsize=22: fontcolor=white@0.8: shadowx=0: shadowy=0: shadowcolor=black:x=(w-text_w-20): y=(main_h-line_h-67)[out] ' % (pre_map, content, FONT_DIR, fontfile )
             # stream name
